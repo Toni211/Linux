@@ -72,7 +72,7 @@ group => ’toni’,
 Modulin ajokomento sudo puppet apply --modulepath modules/ -e 'class{"testi2":}'
 Tämä vaatii, että ollaan puppet -hakemistossa. Esimerkissä "testi2" korvataan halutulla modulilla.
 
-Testi modulissa asennetaan BleachBit ja varmistetaan, että se se asentuu. 
+Testi modulissa asennetaan BleachBit ja varmistetaan, että se on asentunut. 
 Testinä liitin myös service.pp ja config.pp -tiedostot vaikka niissä ei ole sisältöä. Ohjelma asentui ongelmitta.
 
 Testi2 modulissa varmistetaan, että bluetooth on päällä ja tilana on ”running” eli käynnissä. Moduli meni läpi ongelmitta.
