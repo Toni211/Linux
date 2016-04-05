@@ -1,0 +1,81 @@
+Linuxin keskitetty hallinta
+
+Harjoitus toteutettiin Microsoftin Hyper-V alustalla. Käytettävä käyttöjärjestelmä on Xubuntu 14.04 -käyttöjärjestelmä. 
+Käyttöjärjestelmä asennettiin testausta varten, joten sille ei ole tehty mitään erillisiä asetuksia.
+
+Aluksi päivitetään tieto saatavilla olevista paketeista komennolla sudo apt-get update.
+Puppet asennetaan komennolla sudo apt-get install puppet.
+
+Tämän jälkeen luodaan tarvittavat kansiot moduleille. Polut ovat:
+modules/testi/manifests/
+modules/testi2/manifests/
+modules/t1/manifests/
+
+Modulien sisältö:
+
+testi
+init.pp
+class testi {
+	include testi::install
+	include testi::service
+	include testi::config
+}
+install.pp
+class testi::install {
+	package { ’bleachbit’:
+	ensure => latest,
+}
+service.pp
+class testi::service {
+	
+}
+config.pp
+class testi::config {
+	
+}
+
+testi2
+init.pp
+class testi2 {
+	include testi2::service
+}
+service.pp
+class testi2::service {
+	service { ’bluetooth’:
+	enable => ’true’,
+	ensure => ’running’,
+	}
+}
+t1
+init.pp
+class t1 {
+	include t1::config
+}
+config.pp
+class t1::config {
+	file { ’/home/toni/testi’:
+ensure => ’directory’,
+recurse => ’true’,
+purge => ’true’,
+force => ’true’,
+
+owner => ’toni’,
+group => ’toni’,
+}
+file{’/home/toni/testi/Tämä kansio tyhjennetään automaattisesti’:
+content => ”\n”,
+owner => ’toni’,
+group => ’toni’,
+}
+}
+
+Modulin ajokomento sudo puppet apply --modulepath modules/ -e 'class{"testi2":}'
+Tämä vaatii, että ollaan puppet -hakemistossa. Esimerkissä "testi2" korvataan halutulla modulilla.
+
+Testi modulissa asennetaan BleachBit ja varmistetaan, että se se asentuu. 
+Testinä liitin myös service.pp ja config.pp -tiedostot vaikka niissä ei ole sisältöä. Ohjelma asentui ongelmitta.
+
+Testi2 modulissa varmistetaan, että bluetooth on päällä ja tilana on ”running” eli käynnissä. Moduli meni läpi ongelmitta.
+
+T1 modulissä lisätään kansio ja tyhjennetään se. Tyhjennyksen jälkeen luodaan varoitusteksi kansion tyhjentämisestä. 
+Kansion luonti onnistui ongelmitta ja toisessa testässä sinne lisättiin ylimääräisiä tiedostoja, jotka moduli poisti.  
