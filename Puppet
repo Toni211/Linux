@@ -1,0 +1,109 @@
+Asennusalustana on VirtualBoxi versio on 5.0.16 r105871. Koneille on tarkoitus myös asentaa VirtualBox -laajennuspaketti.
+
+Käytettävät koneet ovat seuraavat:
+•	Ubuntu Server 14.04.2 64bit
+  o	Nimi Puppet-Ubuntu-Serv
+•	Ubuntu Desktop 14.04.2 64bit
+  o	Nimi Puppet-Ubuntu
+•	Xubuntu Desktop 14.04 64bit
+  o	Nimi Puppet-Xubuntu
+  
+Kaikkien koneiden verkkoadapterina käytetään Bridget -adapteria.
+Koneiden asennuksen jälkeen varmistetaan, että koneiden paketit ovat ajan tasalla komennoilla:
+	Sudo apt-get update
+	Sudo apt-get upgrade
+	
+Tässä vaiheessa työpöydille asennetaan VirtualBoxin laajennus valitsemalla virtuaalikoneen vasemman yläkulman valikoista Devices ja valitaan ”Insert Guest Additions CD image…”. Tämän jälkeen laajennus tulee näkyviin koneessa. Asennuksen jälkeen laajennus kannattaa poistaa koneesta. Tämä tapahtuu Virtuaali koneen Settings --> Storage --> controller: IDE asetuksista.
+Palvelimella resoluutiota saadaan muutettua grub-tiedostosta. Käytettävä komento on: sudo nano /etc/default/grub.
+Seuraavat muutokset: GRUB_GFXMODE=1152x864 (oletuksena GRUB_GFXMODE=640x480).
+Muutokset otetaan käyttöön komennolla: sudo update-grub.
+Tämän jälkeen kone käynnistetään uudelleen ja uusi resoluutio tulee voimaan.
+Nyt alkaa itse Puppet ohjelmiston asennus. Palvelimella ajetaan seuraavat komennot:
+1) wget https://apt.puppetlabs.com/puppetlabs-release-pc1-trusty.deb. Tämä lataa paketin.  
+2) Sudo dpkg -i puppetlabs-release-pc1-trusty.deb. Tämä asentaa paketin.
+3) Sudo apt-get update. Päivittää pakettilistan.
+4) Sudo apt-get install puppetserver.
+Työasemilla toimitaan seuraavasti:
+1) wget https://apt.puppetlabs.com/puppetlabs-release-pc1-trusty.deb. Tämä lataa paketin.  
+2) Sudo dpkg -i puppetlabs-release-pc1-trusty.deb. Tämä asentaa paketin.
+3) Sudo apt-get update. Päivittää pakettilistan.
+4) Sudo apt-get install puppet-agent.
+Tämän jälkeen päivitetään kaikkien kolmen koneen /etc/hosts -tiedostoon käytettävien kolmen koneen ip-osoite ja sitä vastaava nimi. Tein harjoituksen kotona, joten pääte on .elisa koulussa pääte on .haaga-helia.fi
+	Koneen ip-osoitteen saa näkyviin komennolla ifconfig.
+	Muutokseen tiedostoon tehdään komennolla sudo nano /etc/hosts.
+ Tämän jälkeen koneet vastaavat ping komentoon nimellä ja ip-osoitteella.
+Nyt lisätään työasemille puppetmasterin tiedot komennolla:
+	sudo nano apt-get /etc/puppetlabs/puppet/puppet.conf. Tiedostoon listään rivit
+	[main]
+	server = Puppet-Ubuntu-Serv.elisa
+	(Koulussa tielab.haaga-helia.fi)
+Tämän jälkeen käynnistetään palvelimella puppetserver uudelleen komennolla:
+	sudo /etc/init.d/puppetserver restart
+Tämän jälkeen kaikilla käyttäjillä ajetaan komennot root-käyttäjänä. Komento on:
+	sudo -i
+Palvelimelle luodaan sertifikaatit uudelleen komennoilla:
+	puppet resource service puppet ensure=stopped
+	puppet resource service puppetserver ensure=stopped
+	rm -r /etc/puppetlabs/puppet/ssl
+	puppet cert list -a
+	puppet master --no-daemonize  --verbose
+	puppet resource service puppetserver ensure=running
+	puppet resource service puppet ensure=running
+Nämä komennot pysäyttävät puppet palvelut, poistavat olemassa olevat sertifikaatit ja luovat ne uudelleen.
+Työasemien sertifikaatit saadaan määriteltyä seuraavasti:
+	puppet resource service puppet ensure=stopped
+	rm -r /etc/puppetlabs/puppet/ssl
+	puppet resource service puppet ensure=running
+Tämä poistaa olemassa olevat sertifikaatit poistamisen jälkeen muodostetaan ssh-yhteys palvelimelle, jonka jälkeen sertifikaatit tulevat palvelimelle. 
+Lopuksi palvelimelta tarkastetaan sertifikaatit komennolla:
+	puppet cert list --all
+Nyt tulee lista kolmesta sertifikaatista, jotka ovat liitetty käytössä oleville koneille.
+Sertifikaatit allekirjoitetaan komennoilla: 
+sudo puppet cert sign Puppet-Ubuntu
+sudo puppet cert sign Puppet-Xubuntu
+Sertifikaattien ollessa kunnossa luodaan HelloWorld -moduli, jolla voidaan helposti testata Puppetin toiminta. Käytettävä polku on /etc/puppetlabs/environments/production/modules, jonka alle luodaan helloworld/manifests. Manifest kansioon luodaan init.pp ja motd.pp -tiedostot.
+Tämän jälkeen ajetaan työasemilla komento: puppet agent -t. Tämä ajaa juuri luodun HelloWorld -modulin ja näyttää vihreää, kun kaikki meni läpi.
+Tämän jälkeen testataan toimintojen ajamista tietylle koneelle. Muutoksia tehdään tiedostoon: /etc/puppetlabs/code/environments/production/manifests/site.pp. Tiedostoon luodaan erillinen tehtävä molemmille työasemille. 
+node ”Puppet-Ubuntu” {
+	package { ’wireshark’:
+	ensure => ’installed’,
+	}
+	testi::tyyppi { ’tst’:
+
+}
+}
+
+node ”Puppet-Xubuntu” {
+	user { ’Jaakko’:
+	name => ’jaakko’,
+	ensure => ’present’,
+	groups => ’sudo’,
+	password => ’’
+	}
+}
+
+Modules hakemiston alle luodaan test/manifests -kansiot. kansioon luodaan tyyppi.pp -tiedosto.
+define test::tyyppi {
+	file {”/etc/test”:
+	content => ’testitiedosto’,
+	owner => ’root’,
+	mode => ’0664’,
+}
+}
+
+Koneen nimi piti laittaa ”” -merkkien sisään, koska muuten nimestä tunnistetaan vain Puppet -osio.
+Lopuksi testataan templaten -käyttöä luomalla test -hakemiston alle templates. Tänne luodaan malli.erb -tiedosto. Tiedoston sisältö:
+<html> 
+<body>
+<h1>
+<%= @otsikko %>
+</h1>
+Tama on testisivu
+</body>
+</html>
+
+site.pp tehdään muutos:
+test::tyyppi { ’tst’:
+otsikko => ’Testisivu’,
+}
+Nyt tietokoneelle siirrettävän tiedoston sisältö tulee malli.erb -tiedoston mukaan.
