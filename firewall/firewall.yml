@@ -1,0 +1,51 @@
+---
+
+- hosts: ryhma
+  gather_facts: yes
+  sudo: true
+  tasks:
+  - name: Install firewall  
+    apt: name=ufw
+  - name: Policy
+    ufw: state=enabled policy=deny
+    
+  vars:
+    ports:
+         "1": "22"
+         "2": "80"
+         "3": "443"  
+         "4": "choose"
+         "5": "ip-address"
+
+  vars_prompt: 
+  - name: "port_list"
+    prompt: >
+      Which port do you want to open?
+
+      1. Port 22 default ssh
+
+      2. Port 80 http
+
+      3. Port 443 https 
+
+      4. Choose port
+
+      5. Allow specific ip-address
+
+    default: "1"
+    private: no     
+
+  pre_tasks:
+    - name: Port_variable
+      set_fact: open_port={{ ports[port_list] }}
+
+- include: plays/port22.yml
+  when: open_port == "22" 
+- include: plays/port80.yml
+  when: open_port == "80" 
+- include: plays/port443.yml
+  when: open_port == "443"
+- include: plays/choose_port.yml
+  when: open_port == "choose"
+- include: plays/allow_ip.yml
+  when: open_port == "ip-address"

@@ -1,0 +1,6 @@
+---
+- hosts: ryhma
+  tasks:
+   - get_url: url=https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb dest=/etc/google.deb
+   - command: sudo dpkg -i /etc/google.deb
+  sudo: true

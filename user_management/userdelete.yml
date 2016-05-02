@@ -1,0 +1,15 @@
+---
+
+- hosts : koneet
+  gather_facts: yes
+  sudo: true
+
+  vars_prompt:
+  - name: "user"
+    prompt: >
+     Enter the user you want to delete?
+
+    private: no
+
+  tasks:
+   - user: name={{ user }} state=absent remove=yes 

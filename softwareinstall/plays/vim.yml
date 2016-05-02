@@ -1,0 +1,7 @@
+---
+- hosts: ryhma
+  tasks:
+
+   - apt: name=vim update_cache=yes state=latest
+  sudo: true 
+

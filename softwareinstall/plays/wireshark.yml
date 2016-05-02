@@ -1,0 +1,6 @@
+---
+- hosts: ryhma
+  tasks:
+ 
+   - apt: name=wireshark update_cache=yes state=latest
+  sudo: true

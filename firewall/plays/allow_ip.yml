@@ -1,0 +1,13 @@
+---
+- hosts: ryhma
+  gather_facts: yes
+  sudo: true
+
+  vars_prompt:
+  - name: "specific_ip"
+    prompt: "Enter ip-address"
+    private: no
+
+  tasks:
+  - name: allow ip-address
+    ufw: rule=allow src={{ specific_ip }}

@@ -1,0 +1,6 @@
+---
+- hosts: ryhma
+  sudo: true
+  tasks:
+  - name: allow port
+    ufw: proto=tcp port=22 rule=allow

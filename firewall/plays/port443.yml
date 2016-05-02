@@ -1,0 +1,6 @@
+---
+- hosts: ryhma
+  sudo: true
+  tasks:
+  - name: allow port
+    ufw: port=443 rule=allow

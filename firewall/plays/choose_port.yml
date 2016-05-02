@@ -1,0 +1,13 @@
+---
+- hosts: ryhma
+  gather_facts: yes
+  sudo: true
+
+  vars_prompt:
+  - name: "specific_port"
+    prompt: "Enter port"
+    private: no 
+  
+  tasks:
+  - name: allow port
+    ufw: port={{ specific_port }} rule=allow

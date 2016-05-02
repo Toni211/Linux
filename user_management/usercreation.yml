@@ -1,0 +1,35 @@
+---
+
+- hosts: koneet
+  sudo: true
+
+
+  vars_prompt:
+  - name: "user"
+    prompt: >
+     Enter username 
+
+    private: no
+
+  - name: "password"
+    prompt: >
+     Enter password
+
+    private: yes
+
+  - name: "sslpass"
+    prompt: >
+     Enter SSL passphrase
+
+    private: yes
+
+ 
+#  - name: "groups"
+ #   prompt: >
+  #    Enter groups for this user. Example: (sudo,cdrom,plugdev)
+
+  #  private: no
+
+  tasks:
+   - user: name={{ user }} comment={{ user }} password={{ password }} group=sudo  generate_ssh_key=yes ssh_key_passphrase={{ sslpass }}
+      

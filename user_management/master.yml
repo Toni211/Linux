@@ -1,0 +1,32 @@
+---
+
+- hosts: koneet
+  gather_facts: yes
+  sudo: true
+  
+  vars:
+    methods:
+           "1": "usercreation"
+           "2": "userdelete"
+
+  vars_prompt:
+  - name: "execution"
+    prompt: >
+      What do you want to do?
+
+      1. Create new user
+
+      2. Delete existing user
+
+    private: no
+
+  pre_tasks:
+   - name: set prompt value into variable
+     set_fact: userchoice={{ methods[execution] }}
+  
+
+- include: usercreation.yml
+  when: userchoice == "usercreation"
+
+- include: userdelete.yml
+  when: userchoice == "userdelete"
