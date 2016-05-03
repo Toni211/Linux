@@ -1,0 +1,42 @@
+Palvelun asennus puppet modulilla. Asennettava palvelu on Apache ja moduli asentaa ohjelmiston ja 
+korvaa asennuksessa luodun index.html -tiedoston sisällön valmiilla pohjalla. 
+Harjoitus tehtiin ubuntu työpöytäversiolla ja käytössä ei ollut palvelimen ja työaseman herra ja orja -menetelmää.
+
+init.pp
+class apache2 {
+
+	include apache2::install
+
+	define apache2 ($variable1, $variable2, $variable3, $variable4, ) {
+	file {"$title":
+	content => $variable1,
+	owner => $variable2,
+	group => $variable3,
+	mode => $variable4, 
+	}
+	}
+
+	
+        apache2 {'/var/www/html/index.html':
+         variable1 => template('/etc/puppet/modules/apache2/manifests/pohja.erb'),
+		variable2 => 'toni',
+		variable3 => 'www-data',
+		variable4 => '644',       	
+        	
+	}
+}
+
+install.pp
+class apache2::install{
+	package { 'apache2':
+	ensure => 'latest',	
+	}
+
+
+	service { 'apache2':
+	ensure => 'running',
+	enable => 'true',
+	}
+}
+
+pohja.erb -tiedostossa on vain yksi rivi, jossa kerrotaan tietojen tulevan templaten kautta.
