@@ -1,0 +1,87 @@
+Ansible
+
+Ansible toteutusympäristön rakentaminen. Toteutusympäristön alustana toimii VirtualBox versio 5.0.16 r105871. Työasemien VirtualBoxin määrityksen menivät muuten oletuksena, paitsi verkkokortti, joka on molemmissa Bridged. Aluksi asennettiin Ubuntu -työasema ja -palvelin. Käytettävä käyttöjärjestelmä on Ubuntu 14.04 LTS.
+Asennuksen jälkeen varmistettiin, että virtuaalikoneiden linux-paketit ovat ajan tasalla ja päivitetty.
+
+Työasemalle piti vielä asentaa VirtualBox laajennus, joka mahdollistaa mm. resoluution muutoksen.
+
+Virtuaalikoneiden ollessa muuten kunnossa koneille asennettiin ssh.
+
+Ansiblen asennus onnistuu normaalisti apt-get install -komennolla
+
+Palvelin resoluutio muutettiin vielä komennolla seuraavilla komennoilla:
+Palvelimella resoluutiota saadaan muutettua grub-tiedostosta. Tiedoston sijainto on /etc/default/grub.
+Seuraavat muutokset: GRUB_GFXMODE=1152x864 (oletuksena GRUB_GFXMODE=640x480).
+Muutokset otetaan käyttöön komennolla: sudo update-grub.
+Tämän jälkeen kone käynnistetään uudelleen ja uusi resoluutio tulee voimaan.
+
+Ansiblen konfigurointi
+
+Aluksi lisättiin työaseman ip-osoite tiedostoon /etc/ansible/hosts.
+Ip-osoitteen lisäämisen jälkeen muodostetaan ssh-yhteys palvelimelta työasemaan ja työasemalta palvelimelle.
+Yhteyden muodostamisen jälkeen luotiin avainpari komennolla:
+
+ssh-keygen -t dsa
+
+Tämän jälkeen kopioidaan julkinen avain työasemalla komennolla:
+
+ssh-copy-id 
+
+Nyt varmistetaan toiminta ansiblen toiminta ping -komennolla. Tämä ottaa yhteyttä kaikkiin osoitteisiin, jotka ovat määritelty /ect/ansible/hosts -tiedostossa. ansible ping-komento on: 
+
+ansible all -m ping
+
+Huom. Tämä toimii vain, jos työasemassa ja palvelimessa on samannimiset käyttäjät.
+Jos työasemalla ja palvelimella on erinimiset käyttäjät tulee tehdä muutamia korjaustoimenpiteitä.
+/etc/ansible/hosts -tiedostoon lisätään rivit:
+
+[ryhma]
+työaseman ip-osoite
+
+Tämän jälkeen luodaan kansio ja tiedosto komennoilla:
+sudo mkdir /etc/ansible/group_vars
+sudo nano /etc/ansible/group_vars/ryhma
+ryhma -tiedostoon lisätään seuraavat rivit:
+
+---
+ansible_ssh_user: työaseman käyttäjä
+
+Tänne voidaan laittaa ryhma koneiden asetuksia, esimerkiksi yllä oleva varmistaa, että se käyttää aina ssh-yhteyden muodostamiseen tiettyä käyttäjätunnusta.
+
+Ensimmäinen ansible testi:
+
+ansible ryhma -a ”/bin/echo hello” 
+
+Ad-hoc -komentojen testausta
+
+ansible ryhma -m copy -a ”src=/etc/test dest=/tmp/test/ -kopioi kansion palvelimelta työasemalle.
+
+ansible --ask-sudo-pass 192.168.y.x -a  ”/sbin/reboot” - käynnistää työaseman uudelleen.
+
+ansiblessa voidaan ohjata komennot luoduille ryhmille, kaikille tai tietylle ip-osoitteelle.
+
+--ask-sudo-pass kysyy salasanaa
+
+Jos halutaan varmistaa, että järjestelmä kysyy aina sudo salasanaa Playbook -tiedostoja ajettaessa niin muutoksen voi tehdä /etc/ansible/ansible.cfg -tiedostoon. Tiedostosta poistetaan risuaita kohdasta ”ask_sudo_pass”.
+
+Käytimme ansible playbookeille seuraavaa hakemistorakennetta: /etc/ansible/nimi, jonne luodaan master -tiedosto. Masterin alle luodaan vielä kansio plays, jonne lisätään playbookit, joita master kutsuu.
+
+Ansible playbookin ajo tapahtuu komennolla ansible-playbook /etc/ansible/ajettava tiedosto. Jos ansiblella halutaan ajaa playbook sudona:
+
+ansible-playbook --ask-sudo-pass /etc/ansible/ajettava tiedosto
+
+Sudona ajettavasta playbookista täytyy löytyä sudo: true -rivi.
+
+Yritimme saada ansiblen kutsumaan muita yml -tiedostoja include -menetelmällä, mutta tämä ei tuntunut toimivan. Vian selvityksen jälkeen huomasimme, että käytössä oleva ansible versio ei ollut uusin ja ohjeistetut komennot eivät toimineet vanhassa versiossa. Uuden version asennus onnistui seuraavalla menetelmällä:
+
+sudo apt-get install software-properties-common
+sudo apt-add-repository ppa:ansible/ansible
+sudo apt-get update
+sudo apt-get install ansible
+
+includen sijasta voidaan käyttää:
+
+  roles:
+    - common
+
+Tällöin playbook ajaa automaattisesti /common/tasks/main.yml -tiedoston. Common kansion täytyy sijaita samassa kansiossa, kuin roles -parametrin playbook. 
