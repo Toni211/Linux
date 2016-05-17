@@ -15,5 +15,5 @@ class samba::install {
 	group => 'root', 
 	notify => service['samba'],
 	require => package['samba'],
-  }	
+	}	
 }
