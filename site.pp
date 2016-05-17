@@ -1,3 +1,3 @@
 include samba
 
-Exec { path => ['/usr/sbin']}
+Exec { path => ['/usr/sbin'] }
