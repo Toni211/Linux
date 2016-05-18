@@ -1,0 +1,8 @@
+[samba-test]
+	content = testi
+	path = /etc/samba-test
+	available = yes
+	valid users = toni
+	read only = no
+	browseable = yes
+	public = yes
