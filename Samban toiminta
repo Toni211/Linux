@@ -1,0 +1,22 @@
+Samba moduli
+Moduli on tehty Herra-Orja rakenteella ja testausympäristössä on käytössä Ubuntu 14.04 palvelin ja lisäksi 
+Ubuntu 14.04 ja Ubuntu 16.04 työasemat. Kaikilla oli testattu puppetin toimivuus.
+
+Modulissa site.pp -tiedostoon on tallennettu exec polut, joten niin ei tarvitse enää lisätä exec -komentoja 
+ajaessa. Tämän lisäksi tiedostoon on lisätty vain samba modulin kutsuminen.  
+
+Modulissa init.pp tiedostossa katsotaan mikä on orja-koneen käyttöjärjestelmä. Käyttöjärjestelmän ollessa 
+Ubuntu 16.04 niin moduli siirtyy huom.pp -tiedostoon, joka luo Ubuntu 16.04 tmp -kansioon tiedoston, 
+jossa sanotaan, ettei käyttöjärjestelmä tue sambaa. Käyttöjärjestelmän ollessa Ubuntu 14.04 moduli siirtyy 
+service.pp -tiedostoon, jossa varmistetaan, että palomuuri on päällä, tehdään tarvittavat porttiohjaukset ja 
+luodaan jaettava kansio. Lopussa kutsutaan install.pp -tiedostoa, jossa asennetaan Samba ja varmistetaan, 
+että se on käynnissä. Tämän jälkeen korvataan smb.conf -tiedoston sisältö templaten sisällöllä, jossa 
+tuodaan tarvittavat asetukset. Samba palvelu on vielä määritelty käynnistymään uudelleen aina, kun 
+smb.conf -tiedostoon tehdään muutoksia.
+
+Kun tämän puppet modulin ajoi Ubuntu 14.04 -koneella, Samban asennus onnistui ilman ongelmia ja 
+määritysten mukaiset palomuuriasetukset luotiin. Kansio näkyi jaettuna testatulla Windows- ja Ubuntu 
+16.04 -koneella. Valitettavasti moduli ei aja smbpasswd -a komentoa, jossa luodaan samba käyttäjän 
+salasana ja tämä pitää luoda käsin Ubuntu 14.04 -työasemalla. Luomalla käsin salasanan pääsin 
+kirjautumaan jaettuun kansioon Windows- ja Ubuntu -koneella. Lisäksi testasin modulia Ubuntu 16.04 
+-koneella, jossa asetusten mukainen tiedosto luotiin ja samban asennus ohitettiin määritysten mukaisesti.
